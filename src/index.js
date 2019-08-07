@@ -1,24 +1,20 @@
 // Tools
 import React from 'react'
-import ReactDom from 'react-dom'
 import interact from 'interactjs'
 import clone from 'lodash/clone'
 import isFunction from 'lodash/isFunction'
 import sortBy from 'lodash/sortBy'
 import get from 'lodash/get'
 import uniqueId from 'lodash/uniqueId'
-import bind from 'lodash/bind'
 import union from 'lodash/union'
 import PropTypes from 'prop-types'
-
-const findDOMNode = ReactDom.findDOMNode
 
 const getStyle = (e, styleName) => {
   let styleValue = ''
   if (document.defaultView && document.defaultView.getComputedStyle) {
     styleValue = document.defaultView.getComputedStyle(e, '').getPropertyValue(styleName)
   } else if(e.currentStyle) {
-    styleName = styleName.replace(/\-(\w)/g, (strMatch, p1) =>  p1.toUpperCase())
+    styleName = styleName.replace(/(\w)/g, (strMatch, p1) =>  p1.toUpperCase())
     styleValue = e.currentStyle[styleName]
   }
   return styleValue
@@ -232,9 +228,9 @@ class DragSortableList extends React.Component {
       draggedEl.style.WebkitTransition = draggedEl.style.transition = 'none' // no transition
       draggedEl.style.webkitTransform = draggedEl.style.transform = draggedEl.style.msTransform = 'translate(' + x + 'px, ' + y + 'px)'
     } else {
-      // Dragging has just started, store original position
-      state.dragging.top = target.offsetTop - parseInt(getStyle(target, 'margin-top'), 10)
-      state.dragging.left = target.offsetLeft - parseInt(getStyle(target, 'margin-left'), 10)
+        // Dragging has just started, store original position
+      state.dragging.top = target.offsetTop - target.parentNode.parentNode.scrollTop - parseInt(getStyle(target, 'margin-top'), 10)
+      state.dragging.left = target.offsetLeft - target.parentNode.parentNode.scrollLeft - parseInt(getStyle(target, 'margin-left'), 10)
       state.dragging.width = target.offsetWidth
       state.dragging.height = target.offsetHeight
     }
@@ -284,6 +280,9 @@ class DragSortableList extends React.Component {
     if(onSort && isFunction(onSort)) {
       onSort(items, event)
     }
+
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   _moveItem() {
@@ -343,7 +342,7 @@ class DragSortableList extends React.Component {
     const distanceY = mouseY - childY
     let difference
     let distance
-    let rank
+    
     if(type === 'grid') {
       // Skip if not on the same line
       if(mouseY < top || mouseY > (top + offsetHeight)) {
